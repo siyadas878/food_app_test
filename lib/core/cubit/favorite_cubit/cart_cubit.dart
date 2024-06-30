@@ -12,7 +12,8 @@ class CartCubit extends Cubit<CartState> {
     emit(CartLoadingState());
     try {
       final allCarts = await cartRepo.getCarts();
-      emit(CartSuccessState(allCarts: allCarts));
+      double totalPrice = allCarts.fold(0, (sum, item) => sum + item.dishPrice);
+      emit(CartSuccessState(allCarts: allCarts, totalPrice: totalPrice));
     } catch (e) {
       emit(CartErrorState());
     }
@@ -22,7 +23,8 @@ class CartCubit extends Cubit<CartState> {
     emit(CartLoadingState());
     try {
       final allCarts = await cartRepo.getCarts();
-      emit(CartSuccessState(allCarts: allCarts));
+      double totalPrice = allCarts.fold(0, (sum, item) => sum + item.dishPrice);
+      emit(CartSuccessState(allCarts: allCarts, totalPrice: totalPrice));
     } catch (e) {
       emit(CartErrorState());
     }

@@ -10,8 +10,9 @@ class CartLoadingState extends CartFetchingState {}
 
 class CartSuccessState extends CartFetchingState {
   final List<CategoryDishes> allCarts;
+  final double totalPrice;
 
-  CartSuccessState({required this.allCarts});
+  CartSuccessState({required this.allCarts, required this.totalPrice});
 }
 
 class CartErrorState extends CartFetchingState {}

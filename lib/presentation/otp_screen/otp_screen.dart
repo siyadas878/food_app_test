@@ -10,7 +10,6 @@ import 'package:food_app/widgets/custom_snackBar.dart';
 import 'package:food_app/widgets/simple_scaffold.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-
 import 'package:pinput/pinput.dart';
 import '../../manager/color_manager.dart';
 import '../../manager/font_manager.dart';
@@ -34,7 +33,6 @@ class _OTPScreenState extends State<OTPScreen> {
   AppColors appColors = AppColors();
   FirebaseAuth auth = FirebaseAuth.instance;
   String? verId;
-  String receivedOtp = "";
   int _remainingTime = 60;
   Timer? _timer;
 
@@ -110,14 +108,14 @@ class _OTPScreenState extends State<OTPScreen> {
               padding: const EdgeInsets.symmetric(vertical: 10.0),
               child: Center(
                 child: Text(
-                  "Enter 6-digit  code We have sent to ",
+                  "Enter 6-digit code we have sent to ",
                   style: appFont.f14w500Black,
                 ),
               ),
             ),
             Center(
                 child: Text(
-              '',
+              widget.userData.mobile ?? '',
               style: appFont.f14w700Orange,
             )),
             const SizedBox(
@@ -131,7 +129,9 @@ class _OTPScreenState extends State<OTPScreen> {
               length: 6,
               pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
               showCursor: true,
-              onCompleted: (pin) {},
+              onCompleted: (pin) {
+                _verifyOtp();
+              },
             ),
             appSpaces.spaceForHeight15,
             Row(
@@ -175,8 +175,7 @@ class _OTPScreenState extends State<OTPScreen> {
                   builder: (context, state) {
                     return InkWell(
                       onTap: () {
-                        verifyOTP(
-                            verId.toString(), _textEditingController.text);
+                        _verifyOtp();
                       },
                       child: CircleAvatar(
                         radius: 35,
@@ -207,17 +206,8 @@ class _OTPScreenState extends State<OTPScreen> {
       timeout: const Duration(seconds: 60),
       phoneNumber: '+91 $number',
       verificationCompleted: (PhoneAuthCredential credential) async {
-        setState(() {
-          _textEditingController.text = credential.smsCode.toString();
-          receivedOtp = credential.smsCode.toString();
-        });
-        verifyOTP(credential.verificationId.toString(),
-            credential.smsCode.toString());
-
-        setState(() {
-          _textEditingController.text = credential.smsCode.toString();
-          receivedOtp = credential.smsCode.toString();
-        });
+        _textEditingController.text = credential.smsCode.toString();
+        _verifyOtp(credential: credential);
       },
       verificationFailed: (FirebaseAuthException e) {
         customSnackBar(
@@ -230,32 +220,48 @@ class _OTPScreenState extends State<OTPScreen> {
         setState(() {
           verId = verificationId;
         });
-        customSnackBar(title: 'Successful', message: 'Otp send successfully');
+        customSnackBar(title: 'Successful', message: 'OTP sent successfully');
       },
-      codeAutoRetrievalTimeout: (String verificationId) {},
+      codeAutoRetrievalTimeout: (String verificationId) {
+        setState(() {
+          verId = verificationId;
+        });
+      },
     );
   }
 
-  void verifyOTP(String verificationId, String smsCode) {
-    AuthCredential credential = PhoneAuthProvider.credential(
-      verificationId: verificationId,
-      smsCode: smsCode,
+  void _verifyOtp({PhoneAuthCredential? credential}) async {
+    credential ??= PhoneAuthProvider.credential(
+      verificationId: verId!,
+      smsCode: _textEditingController.text.trim(),
     );
-    auth.signInWithCredential(credential).then((value) {
-      widget.isLogin
-          ? Get.offAllNamed("/Home")
-          : BlocProvider.of<AuthCubit>(context).userSignUp(
-              UserModel(
-                email: widget.userData.email,
-                name: widget.userData.name,
-                password: widget.userData.password,
-                mobile: widget.userData.mobile,
-              ),
-              context,
-              value.user!.uid);
+
+    try {
+      UserCredential userCredential =
+          await auth.signInWithCredential(credential);
       final box = GetStorage();
-      box.write('token', value.credential!.accessToken);
-      box.write('user', value.user!.uid);
-    }).catchError((e) {});
+      box.write('token', userCredential.credential?.accessToken);
+      box.write('user', userCredential.user?.uid);
+      if (widget.isLogin) {
+        Get.offAllNamed("/Home");
+      } else {
+        BlocProvider.of<AuthCubit>(context).userSignUp(
+          UserModel(
+            email: widget.userData.email,
+            name: widget.userData.name,
+            password: widget.userData.password,
+            mobile: widget.userData.mobile,
+          ),
+          context,
+          userCredential.user!.uid,
+        );
+      }
+    } catch (e) {
+      // customSnackBar(
+      //   title: 'Error',
+      //   message: 'Invalid OTP',
+      //   isError: true,
+      // );
+    }
   }
 }

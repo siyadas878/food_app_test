@@ -25,9 +25,6 @@ class _CartScreenState extends State<CartScreen> {
     super.initState();
   }
 
-  List<int> prices = [];
-  List<int> quantity = [];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,32 +68,45 @@ class _CartScreenState extends State<CartScreen> {
           }
         },
       ),
-      bottomSheet: Container(
-          height: 180,
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-              borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(30), topRight: Radius.circular(30)),
-              color: Colors.white,
-              border:
-                  Border.all(color: Colors.grey.withOpacity(0.5), width: 2)),
-          child: Column(
-            children: [
-              const InvoiceRow(title: 'Items Total', price: '500'),
-              appSpaces.spaceForHeight5,
-              const InvoiceRow(title: 'GST', price: '10'),
-              appSpaces.spaceForHeight15,
-              const InvoiceRow(title: 'Grand Total', price: '500'),
-              const Spacer(),
-              CustomButton(
-                  verticalPadding: 0,
-                  onTap: () async {
-                    Get.offNamed('/SuccessScreen');
-                  },
-                  maxWidth: true,
-                  title: "Proceed to Payment")
-            ],
-          )),
+      bottomSheet: BlocBuilder<CartCubit, CartState>(
+        builder: (context, state) {
+          if (state is CartSuccessState) {
+            return Container(
+                height: 180,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(30),
+                        topRight: Radius.circular(30)),
+                    color: Colors.white,
+                    border: Border.all(
+                        color: Colors.grey.withOpacity(0.5), width: 2)),
+                child: Column(
+                  children: [
+                    InvoiceRow(
+                        title: 'Items Total',
+                        price: state.totalPrice.toString()),
+                    appSpaces.spaceForHeight5,
+                    const InvoiceRow(title: 'GST', price: '10'),
+                    appSpaces.spaceForHeight15,
+                    InvoiceRow(
+                        title: 'Grand Total',
+                        price: '${state.totalPrice + 10}'),
+                    const Spacer(),
+                    CustomButton(
+                        verticalPadding: 0,
+                        onTap: () async {
+                          Get.offNamed('/SuccessScreen');
+                        },
+                        maxWidth: true,
+                        title: "Proceed to Payment")
+                  ],
+                ));
+          } else {
+            return const SizedBox.shrink();
+          }
+        },
+      ),
     );
   }
 }
