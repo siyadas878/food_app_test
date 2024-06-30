@@ -2,7 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:food_app/core/cubit/auth_cubit/auth_cubit.dart';
-import 'package:food_app/core/cubit/favorite_cubit/cart_cubit.dart';
+import 'package:food_app/core/cubit/cart_cubit/cart_cubit.dart';
 import 'package:food_app/core/cubit/restaurant_cubit/restaurant_cubit.dart';
 import 'package:food_app/core/cubit/user_cubit/user_cubit.dart';
 import 'package:food_app/core/repository/auth_repo.dart';

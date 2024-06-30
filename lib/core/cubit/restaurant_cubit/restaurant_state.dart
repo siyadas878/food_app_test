@@ -4,6 +4,8 @@ abstract class RestaurantState {}
 
 final class RestaurantInitial extends RestaurantState {}
 
+// for fetching all the items
+
 class RestaurantListingFetchingState extends RestaurantState {}
 
 class RestaurantListingLoadingState extends RestaurantListingFetchingState {}

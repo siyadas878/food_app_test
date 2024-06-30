@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:food_app/core/cubit/favorite_cubit/cart_cubit.dart';
+import 'package:food_app/core/cubit/cart_cubit/cart_cubit.dart';
 import 'package:food_app/manager/font_manager.dart';
 import 'package:food_app/manager/space_manger.dart';
 import 'package:food_app/presentation/home_screen/home_screen.dart';
@@ -25,6 +25,10 @@ class _CartScreenState extends State<CartScreen> {
     super.initState();
   }
 
+  var totalPrices = 0.0.obs;
+  List<double> prices = [];
+  List<int> quantity = [];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,8 +52,31 @@ class _CartScreenState extends State<CartScreen> {
                 ? const EmptyText(title: 'Empty Cart')
                 : ListView.separated(
                     itemBuilder: (context, index) {
+                      quantity =
+                          List.generate(state.allCarts.length, (index) => 1);
+
+                      prices = List.generate(
+                          state.allCarts.length,
+                          (index) =>
+                              (state.allCarts[index].dishPrice ?? 0.0) * 1.0);
+                      if (index == state.allCarts.length - 1) {
+                        Future.delayed(const Duration(seconds: 1))
+                            .then((value) => _totalPrice());
+                      }
+
                       return MyCartCard(
-                          qtyCount: (qty) {},
+                          qtyCount: (qty) {
+                            if (qty == 1) {
+                              quantity[index] = quantity[index] + 1;
+                              prices[index] = prices[index] +
+                                  (state.allCarts[index].dishPrice ?? 0.0);
+                            } else {
+                              prices[index] = prices[index] -
+                                  (state.allCarts[index].dishPrice ?? 0.0);
+                              quantity[index] = quantity[index] - 1;
+                            }
+                            _totalPrice();
+                          },
                           removeCart: () {
                             BlocProvider.of<CartCubit>(context).removeCarts(
                                 state.allCarts[index].dishId ?? '', context);
@@ -83,15 +110,21 @@ class _CartScreenState extends State<CartScreen> {
                         color: Colors.grey.withOpacity(0.5), width: 2)),
                 child: Column(
                   children: [
-                    InvoiceRow(
-                        title: 'Items Total',
-                        price: state.totalPrice.toString()),
-                    appSpaces.spaceForHeight5,
-                    const InvoiceRow(title: 'GST', price: '10'),
-                    appSpaces.spaceForHeight15,
-                    InvoiceRow(
-                        title: 'Grand Total',
-                        price: '${state.totalPrice + 10}'),
+                    Obx(() {
+                      return Column(
+                        children: [
+                          InvoiceRow(
+                              title: 'Items Total',
+                              price: totalPrices.value.toString()),
+                          appSpaces.spaceForHeight5,
+                          const InvoiceRow(title: 'GST', price: '10'),
+                          appSpaces.spaceForHeight15,
+                          InvoiceRow(
+                              title: 'Grand Total',
+                              price: '${totalPrices.value + 10}'),
+                        ],
+                      );
+                    }),
                     const Spacer(),
                     CustomButton(
                         verticalPadding: 0,
@@ -108,5 +141,12 @@ class _CartScreenState extends State<CartScreen> {
         },
       ),
     );
+  }
+
+  _totalPrice() {
+    totalPrices.value = 0.0;
+    for (var element in prices) {
+      totalPrices.value = totalPrices.value + element;
+    }
   }
 }
