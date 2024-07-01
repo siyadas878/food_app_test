@@ -199,6 +199,7 @@ class _OTPScreenState extends State<OTPScreen> {
     );
   }
 
+  //will send the otp
   _sendOtp() async {
     String number = widget.userData.mobile ?? '';
 
@@ -230,6 +231,7 @@ class _OTPScreenState extends State<OTPScreen> {
     );
   }
 
+  //verify the otp and access
   void _verifyOtp({PhoneAuthCredential? credential}) async {
     credential ??= PhoneAuthProvider.credential(
       verificationId: verId!,
@@ -240,7 +242,7 @@ class _OTPScreenState extends State<OTPScreen> {
       UserCredential userCredential =
           await auth.signInWithCredential(credential);
       final box = GetStorage();
-      box.write('token', userCredential.credential?.accessToken);
+      box.write('token', userCredential.user!.uid);
       box.write('user', userCredential.user?.uid);
       if (widget.isLogin) {
         Get.offAllNamed("/Home");

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:food_app/core/models/user_model.dart';
 import 'package:food_app/manager/space_manger.dart';
 import 'package:food_app/utils/get_dimension.dart';
+import 'package:food_app/utils/google_signin.dart';
 import 'package:food_app/widgets/google_signin.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';

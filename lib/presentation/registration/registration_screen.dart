@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:food_app/core/models/user_model.dart';
 import 'package:food_app/manager/space_manger.dart';
+import 'package:food_app/utils/encrpt.dart';
+import 'package:food_app/utils/google_signin.dart';
 import 'package:food_app/widgets/google_signin.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -28,6 +30,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  String encrptedPassword = '';
 
   @override
   void dispose() {
@@ -180,6 +183,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   _handleRegistration() {
     final isValid = _formKey.currentState?.validate();
+    //encrypt password and adding
+    encrptedPassword = encryptPassword(passwordController.text);
     if (isValid != null && isValid == true) {
       Get.toNamed("/otpScreen", arguments: {
         'isLogin': false,
@@ -187,27 +192,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             email: emailController.text,
             mobile: phoneController.text,
             name: nameController.text,
-            password: passwordController.text)
+            password: encrptedPassword)
       });
     }
     _formKey.currentState?.save();
   }
-}
-
-Future<UserCredential> signInWithGoogle() async {
-  // Trigger the authentication flow
-  final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-
-  // Obtain the auth details from the request
-  final GoogleSignInAuthentication? googleAuth =
-      await googleUser?.authentication;
-
-  // Create a new credential
-  final credential = GoogleAuthProvider.credential(
-    accessToken: googleAuth?.accessToken,
-    idToken: googleAuth?.idToken,
-  );
-
-  // Once signed in, return the UserCredential
-  return await FirebaseAuth.instance.signInWithCredential(credential);
 }
